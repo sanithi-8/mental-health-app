@@ -3,6 +3,7 @@ from datetime import datetime
 import csv
 import os
 import pandas as pd
+import random  # For random affirmation
 
 # Initialize dark mode state
 if "dark_mode" not in st.session_state:
@@ -97,6 +98,23 @@ if st.sidebar.button("Toggle Dark Mode 🌙" if not st.session_state.dark_mode e
 # HOME PAGE
 if page == "Home":
     st.title("Virtual Mental Health Companion")
+
+    # 🌟 Daily Affirmation
+    affirmations = [
+        "You are stronger than you think.",
+        "Every day is a fresh start.",
+        "You have the power to create change.",
+        "You are enough, exactly as you are.",
+        "Progress is progress, no matter how small.",
+        "Your feelings are valid.",
+        "Be kind to yourself today.",
+        "You are doing your best, and that is enough.",
+        "Inhale confidence, exhale doubt.",
+        "You are not alone on this journey."
+    ]
+    st.subheader("💬 Daily Affirmation")
+    st.markdown(f"🌟 *{random.choice(affirmations)}*")
+    st.markdown("---")
 
     st.header("Daily Mood Check-in")
 
