@@ -2,6 +2,7 @@ import streamlit as st
 from datetime import datetime
 import csv
 import os
+import pandas as pd
 
 st.title("Virtual Mental Health Companion")
 
@@ -45,3 +46,18 @@ st.write("Here are some general tips for mental well-being:")
 st.write("- Take deep breaths")
 st.write("- Take a short walk")
 st.write("- Reach out to a friend or professional if needed")
+
+# Display past entries
+st.markdown("---")
+st.header("Your Past Mood & Journal Entries")
+
+if os.path.isfile('mood_journal.csv'):
+    df = pd.read_csv('mood_journal.csv')
+    df = df.sort_values(by="Timestamp", ascending=False)
+    for idx, row in df.iterrows():
+        st.markdown(f"**{row['Timestamp']}** - Mood: *{row['Mood']}*")
+        if pd.notna(row['Journal Entry']) and row['Journal Entry'].strip() != "":
+            st.write(row['Journal Entry'])
+        st.markdown("---")
+else:
+    st.write("No past entries found.")
