@@ -115,8 +115,7 @@ affirmations = [
 st.subheader("💬 Daily Affirmation")
 st.markdown(f"🌟 *{random.choice(affirmations)}*")
 st.markdown("---")
-
-    st.title("Virtual Mental Health Companion")
+ st.title("Virtual Mental Health Companion")
 
     st.header("Daily Mood Check-in")
 
