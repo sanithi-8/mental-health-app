@@ -95,42 +95,37 @@ if st.sidebar.button("Toggle Dark Mode 🌙" if not st.session_state.dark_mode e
     toggle_dark_mode()
     st.experimental_rerun()
 
-# Helper to calculate streak
-def calculate_gratitude_streak(gratitude_dates):
-    if not gratitude_dates:
-        return 0
-    # Sort dates descending
-    dates = sorted(gratitude_dates, reverse=True)
-    streak = 1
-    for i in range(1, len(dates)):
-        diff = (dates[i-1] - dates[i]).days
-        if diff == 1:
-            streak += 1
-        else:
-            break
-    return streak
+# Affirmations list
+affirmations = [
+    "You are enough just as you are.",
+    "Every day is a new beginning.",
+    "You are stronger than you think.",
+    "Your feelings are valid.",
+    "Take it one step at a time.",
+    "You deserve kindness and respect.",
+    "Believe in your ability to heal."
+]
+affirmation = random.choice(affirmations)
 
-# HOME PAGE
 if page == "Home":
     st.title("Virtual Mental Health Companion")
-
-    # 🌟 Daily Affirmation
-    affirmations = [
-        "You are stronger than you think.",
-        "Every day is a fresh start.",
-        "You have the power to create change.",
-        "You are enough, exactly as you are.",
-        "Progress is progress, no matter how small.",
-        "Your feelings are valid.",
-        "Be kind to yourself today.",
-        "You are doing your best, and that is enough.",
-        "Inhale confidence, exhale doubt.",
-        "You are not alone on this journey."
-    ]
-    st.subheader("💬 Daily Affirmation")
-    st.markdown(f"🌟 *{random.choice(affirmations)}*")
-    st.markdown("---")
-
+    
+    # Show Affirmation
+    st.markdown(f"### 🌟 Daily Affirmation:\n> {affirmation}")
+    
+    # Check if user logged mood today for reminder
+    checked_in_today = False
+    if os.path.isfile('mood_journal.csv'):
+        df_check = pd.read_csv('mood_journal.csv')
+        if not df_check.empty:
+            last_entry_date_str = df_check['Timestamp'].max()
+            last_entry_date = datetime.strptime(last_entry_date_str, "%Y-%m-%d %H:%M:%S")
+            if last_entry_date.date() == datetime.now().date():
+                checked_in_today = True
+    
+    if not checked_in_today:
+        st.warning("🔔 You haven't checked in your mood today. Take a moment for your mental health!")
+    
     st.header("Daily Mood Check-in")
 
     mood_activities = {
@@ -167,38 +162,6 @@ if page == "Home":
             for activity in activities:
                 st.write(f"- {activity}")
 
-    # ------------------ Gratitude Tracker --------------------
-    st.markdown("---")
-    st.header("🙏 Gratitude Tracker")
-
-    gratitude_input = st.text_input("List one thing you're grateful for today:")
-
-    if st.button("Add Gratitude"):
-        if gratitude_input.strip():
-            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            file_exists = os.path.isfile("gratitude_log.csv")
-            with open("gratitude_log.csv", "a", newline="", encoding="utf-8") as f:
-                writer = csv.writer(f)
-                if not file_exists:
-                    writer.writerow(["Timestamp", "Gratitude"])
-                writer.writerow([now, gratitude_input])
-            st.success("Gratitude saved! 🌼")
-        else:
-            st.warning("Please write something before submitting.")
-
-    # Display recent gratitude entries
-    if os.path.exists("gratitude_log.csv"):
-        st.markdown("### 🌿 Past Gratitude Entries")
-        df_g = pd.read_csv("gratitude_log.csv")
-        df_g = df_g.sort_values(by="Timestamp", ascending=False).head(5)
-        for _, row in df_g.iterrows():
-            st.write(f"**{row['Timestamp']}** – {row['Gratitude']}")
-
-        # Calculate and show streak
-        gratitude_dates = pd.to_datetime(df_g['Timestamp']).dt.date.unique()
-        streak = calculate_gratitude_streak(sorted(gratitude_dates, reverse=True))
-        st.markdown(f"**🔥 Your Current Gratitude Streak: {streak} day{'s' if streak != 1 else ''}!**")
-
     st.markdown("---")
     st.write("Here are some general tips for mental well-being:")
     st.write("- Take deep breaths")
@@ -219,7 +182,50 @@ if page == "Home":
     else:
         st.write("No past entries found.")
 
-# RESOURCES PAGE
+    st.markdown("---")
+    st.header("Gratitude Tracker")
+
+    st.markdown("Write down things you're grateful for:")
+    gratitude_entry = st.text_input("Enter something you're grateful for today:", key="gratitude_entry")
+
+    if st.button("Add Gratitude"):
+        if gratitude_entry.strip() != "":
+            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            data_row = [now, gratitude_entry]
+
+            file_exists = os.path.isfile('gratitude.csv')
+            with open('gratitude.csv', 'a', newline='', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                if not file_exists:
+                    writer.writerow(["Timestamp", "Gratitude"])
+                writer.writerow(data_row)
+            st.success("Gratitude entry added!")
+
+    st.markdown("### Your recent gratitude entries:")
+    if os.path.isfile('gratitude.csv'):
+        df_grat = pd.read_csv('gratitude.csv')
+        df_grat = df_grat.sort_values(by="Timestamp", ascending=False)
+        recent = df_grat.head(5)
+        for idx, row in recent.iterrows():
+            st.write(f"- {row['Timestamp']}: {row['Gratitude']}")
+    else:
+        st.write("No gratitude entries found.")
+
+    # Gratitude streak calculation
+    if os.path.isfile('gratitude.csv'):
+        df_streak = pd.read_csv('gratitude.csv')
+        df_streak['Date'] = pd.to_datetime(df_streak['Timestamp']).dt.date
+        unique_dates = sorted(df_streak['Date'].unique(), reverse=True)
+
+        streak = 0
+        today = datetime.now().date()
+        for i, d in enumerate(unique_dates):
+            if d == today - timedelta(days=i):
+                streak += 1
+            else:
+                break
+        st.markdown(f"### Your current gratitude streak: {streak} day(s)")
+
 elif page == "Resources":
     st.title("Mental Health Resources")
 
