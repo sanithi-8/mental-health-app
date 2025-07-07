@@ -95,6 +95,27 @@ if st.sidebar.button("Toggle Dark Mode 🌙" if not st.session_state.dark_mode e
     st.experimental_rerun()
 
 if page == "Home":
+    import random
+
+# Daily Affirmations
+affirmations = [
+    "You are stronger than you think.",
+    "Every day is a fresh start.",
+    "You have the power to create change.",
+    "You are enough, exactly as you are.",
+    "Progress is progress, no matter how small.",
+    "Your feelings are valid.",
+    "Be kind to yourself today.",
+    "You are doing your best, and that is enough.",
+    "Inhale confidence, exhale doubt.",
+    "You are not alone on this journey."
+]
+
+# Show a random affirmation
+st.subheader("💬 Daily Affirmation")
+st.markdown(f"🌟 *{random.choice(affirmations)}*")
+st.markdown("---")
+
     st.title("Virtual Mental Health Companion")
 
     st.header("Daily Mood Check-in")
