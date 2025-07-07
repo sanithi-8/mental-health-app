@@ -94,9 +94,9 @@ if st.sidebar.button("Toggle Dark Mode 🌙" if not st.session_state.dark_mode e
     toggle_dark_mode()
     st.experimental_rerun()
 
+# HOME PAGE
 if page == "Home":
-   
- st.title("Virtual Mental Health Companion")
+    st.title("Virtual Mental Health Companion")
 
     st.header("Daily Mood Check-in")
 
@@ -154,6 +154,7 @@ if page == "Home":
     else:
         st.write("No past entries found.")
 
+# RESOURCES PAGE
 elif page == "Resources":
     st.title("Mental Health Resources")
 
