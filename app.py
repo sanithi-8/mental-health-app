@@ -4,16 +4,15 @@ import csv
 import os
 import pandas as pd
 import random
-import plotly.express as px
 
-# --- Session State ---
+# Initialize dark mode state
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = False
 
 def toggle_dark_mode():
     st.session_state.dark_mode = not st.session_state.dark_mode
 
-# --- CSS Themes ---
+# CSS for light and dark modes
 light_css = """
 body, .block-container {
     background-color: white;
@@ -88,7 +87,7 @@ def apply_theme():
 
 apply_theme()
 
-# --- Sidebar Navigation ---
+# Sidebar Navigation and theme toggle
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["Home", "Resources"])
 
@@ -96,7 +95,7 @@ if st.sidebar.button("Toggle Dark Mode 🌙" if not st.session_state.dark_mode e
     toggle_dark_mode()
     st.experimental_rerun()
 
-# --- Affirmations ---
+# Affirmations list
 affirmations = [
     "You are enough just as you are.",
     "Every day is a new beginning.",
@@ -108,26 +107,26 @@ affirmations = [
 ]
 affirmation = random.choice(affirmations)
 
-# --- HOME PAGE ---
 if page == "Home":
-    st.title("🌼 Virtual Mental Health Companion")
-
+    st.title("Virtual Mental Health Companion")
+    
+    # Show Affirmation
     st.markdown(f"### 🌟 Daily Affirmation:\n> {affirmation}")
-
-    # --- Mood Check Reminder ---
+    
+    # Check if user logged mood today for reminder
     checked_in_today = False
     if os.path.isfile('mood_journal.csv'):
         df_check = pd.read_csv('mood_journal.csv')
         if not df_check.empty:
-            last_entry_date = pd.to_datetime(df_check['Timestamp']).max().date()
-            if last_entry_date == datetime.now().date():
+            last_entry_date_str = df_check['Timestamp'].max()
+            last_entry_date = datetime.strptime(last_entry_date_str, "%Y-%m-%d %H:%M:%S")
+            if last_entry_date.date() == datetime.now().date():
                 checked_in_today = True
-
+    
     if not checked_in_today:
         st.warning("🔔 You haven't checked in your mood today. Take a moment for your mental health!")
-
-    # --- Mood Check-in ---
-    st.header("📝 Daily Mood Check-in")
+    
+    st.header("Daily Mood Check-in")
 
     mood_activities = {
         "Happy 😊": ["Keep up the great energy!", "Share your happiness with a friend.", "Do something creative."],
@@ -137,10 +136,11 @@ if page == "Home":
         "Neutral 😐": ["Try a new hobby.", "Connect with a friend.", "Spend some time outdoors."]
     }
 
-    mood = st.radio("How are you feeling today?", list(mood_activities.keys()), horizontal=True)
+    mood = st.selectbox("How are you feeling today?", list(mood_activities.keys()))
 
+    # Colorful journaling container
     st.markdown('<div class="journal-container">', unsafe_allow_html=True)
-    journal_entry = st.text_area("Write your thoughts or feelings (optional):", key="journal_entry", placeholder="Start typing your journal entry here...")
+    journal_entry = st.text_area("Write your thoughts or feelings (optional):", key="journal_entry", help="Journaling helps with emotional release.", placeholder="Start typing your journal entry here...")
     st.markdown('</div>', unsafe_allow_html=True)
 
     if st.button("Submit"):
@@ -158,28 +158,18 @@ if page == "Home":
 
         activities = mood_activities.get(mood, [])
         if activities:
-            st.markdown("### 🌟 Suggested Activities:")
+            st.markdown("### Here are some activities you might try:")
             for activity in activities:
                 st.write(f"- {activity}")
 
-    # --- Music / Meditation Section ---
     st.markdown("---")
-    st.header("🎧 Relaxing Resources")
-    st.markdown("Take a break and enjoy a calming video or guided meditation:")
+    st.write("Here are some general tips for mental well-being:")
+    st.write("- Take deep breaths")
+    st.write("- Take a short walk")
+    st.write("- Reach out to a friend or professional if needed")
 
-    videos = {
-        "10-Minute Meditation for Anxiety": "https://www.youtube.com/watch?v=O-6f5wQXSu8",
-        "Peaceful Piano Music": "https://www.youtube.com/watch?v=1ZYbU82GVz4",
-        "Sleep Music – Deep Relaxation": "https://www.youtube.com/watch?v=2OEL4P1Rz04",
-        "Positive Energy Boost": "https://www.youtube.com/watch?v=1c1iTzl0xYI"
-    }
-
-    video_choice = st.selectbox("Choose a calming video:", list(videos.keys()))
-    st.video(videos[video_choice])
-
-    # --- Journal History ---
     st.markdown("---")
-    st.header("📖 Past Mood & Journal Entries")
+    st.header("Your Past Mood & Journal Entries")
 
     if os.path.isfile('mood_journal.csv'):
         df = pd.read_csv('mood_journal.csv')
@@ -192,28 +182,11 @@ if page == "Home":
     else:
         st.write("No past entries found.")
 
-    # --- Mood Trends Visualization ---
-    if os.path.exists('mood_journal.csv'):
-        st.markdown("### 📈 Mood Trend Over Time")
-        df_viz = pd.read_csv('mood_journal.csv')
-        df_viz['Date'] = pd.to_datetime(df_viz['Timestamp']).dt.date
-        mood_counts = df_viz.groupby(['Date', 'Mood']).size().reset_index(name='Count')
-
-        fig = px.line(mood_counts, x="Date", y="Count", color="Mood", markers=True,
-                      title="Mood Trends Over Time", labels={"Count": "Mood Count"})
-        st.plotly_chart(fig, use_container_width=True)
-
-        st.markdown("### 🥧 Mood Distribution")
-        mood_pie = df_viz['Mood'].value_counts().reset_index()
-        mood_pie.columns = ['Mood', 'Count']
-        fig_pie = px.pie(mood_pie, names='Mood', values='Count', title='Overall Mood Distribution')
-        st.plotly_chart(fig_pie, use_container_width=True)
-
-    # --- Gratitude Tracker ---
     st.markdown("---")
-    st.header("🙏 Gratitude Tracker")
+    st.header("Gratitude Tracker")
 
-    gratitude_entry = st.text_input("What are you grateful for today?", key="gratitude_entry")
+    st.markdown("Write down things you're grateful for:")
+    gratitude_entry = st.text_input("Enter something you're grateful for today:", key="gratitude_entry")
 
     if st.button("Add Gratitude"):
         if gratitude_entry.strip() != "":
@@ -228,16 +201,17 @@ if page == "Home":
                 writer.writerow(data_row)
             st.success("Gratitude entry added!")
 
-    st.markdown("### ✨ Recent Gratitude Entries")
+    st.markdown("### Your recent gratitude entries:")
     if os.path.isfile('gratitude.csv'):
         df_grat = pd.read_csv('gratitude.csv')
         df_grat = df_grat.sort_values(by="Timestamp", ascending=False)
-        for idx, row in df_grat.head(5).iterrows():
+        recent = df_grat.head(5)
+        for idx, row in recent.iterrows():
             st.write(f"- {row['Timestamp']}: {row['Gratitude']}")
     else:
         st.write("No gratitude entries found.")
 
-    # --- Gratitude Streak ---
+    # Gratitude streak calculation
     if os.path.isfile('gratitude.csv'):
         df_streak = pd.read_csv('gratitude.csv')
         df_streak['Date'] = pd.to_datetime(df_streak['Timestamp']).dt.date
@@ -250,21 +224,21 @@ if page == "Home":
                 streak += 1
             else:
                 break
-        st.markdown(f"### 🔥 Current Gratitude Streak: **{streak}** day(s)")
+        st.markdown(f"### Your current gratitude streak: {streak} day(s)")
 
-# --- RESOURCES PAGE ---
 elif page == "Resources":
-    st.title("📚 Mental Health Resources")
+    st.title("Mental Health Resources")
 
     st.markdown("""
-Here are some helpful resources and hotlines:
+    Here are some helpful resources and hotlines:
 
-- [National Suicide Prevention Lifeline](https://suicidepreventionlifeline.org) – 988 or 1-800-273-8255  
-- [Crisis Text Line](https://www.crisistextline.org) – Text HOME to 741741  
-- [MentalHealth.gov](https://www.mentalhealth.gov) – Information and resources  
-- [BetterHelp](https://www.betterhelp.com) – Online therapy platform  
-- [Calm](https://www.calm.com) – Meditation and sleep app  
-- [Headspace](https://www.headspace.com) – Meditation and mindfulness  
-- [NAMI (National Alliance on Mental Illness)](https://www.nami.org) – Support and education  
-""")
+    - [National Suicide Prevention Lifeline](https://suicidepreventionlifeline.org) – 988 or 1-800-273-8255  
+    - [Crisis Text Line](https://www.crisistextline.org) – Text HOME to 741741  
+    - [MentalHealth.gov](https://www.mentalhealth.gov) – Information and resources  
+    - [BetterHelp](https://www.betterhelp.com) – Online therapy platform  
+    - [Calm](https://www.calm.com) – Meditation and sleep app  
+    - [Headspace](https://www.headspace.com) – Meditation and mindfulness  
+    - [NAMI (National Alliance on Mental Illness)](https://www.nami.org) – Support and education  
+    """)
+
     st.write("If you are in crisis or need immediate help, please contact a professional or call a hotline.")
